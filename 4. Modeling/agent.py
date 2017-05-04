@@ -26,7 +26,8 @@ class Agent:
         price_hist_df:    Цены ПИФов на дату
         port_data_df:     Данные портфеля ПИФов
         port_data_hist_df:Данные портфеля ПИФов история
-        min_thres:        Минимальный порог приобретения ПИФа
+        min_thres:        Минимальный порог прибыльности ПИФа
+        top_thres:        Количественный порог прибыльности ПИФа (топ рейтинга по прибыльности)
         prim_state:       Состояние первичной закупки ПИФов
         den_pow:          Знаменатель степени 1/2**248/den_pow в которую возводится волатильность 
 
@@ -38,7 +39,7 @@ class Agent:
 
         self.start()
 
-    def start(self, min_thres = 1.2, pow_st_dev = 0.5, den_pow = 248):
+    def start(self, top_thres = 5 , min_thres = 1, pow_st_dev = 0.5, den_pow = 248):
         """
             Установка всех переменных (которые меняются при активности) в начальное состояние
 
@@ -52,6 +53,7 @@ class Agent:
         self.port_data_hist_df = pd.DataFrame (columns = ['date', 'pif_id', 'quantity', 'company', 'pif', 'min_sum', 'surcharge', 'discount', 'price', 'value', 'part'])
         
         self.min_thres = min_thres
+        self.top_thres = top_thres
         self.pow_st_dev = pow_st_dev
         self.prim_state = True
         self.den_pow = den_pow
@@ -181,8 +183,11 @@ class Agent:
         # Поля: pif_id, part
         self.part_curr_df = part_curr_df
         
-        # Вычислить требуемые доли паёв
+        # Оставить ПИФы выше порогов
         part_req_df = self.param_df[self.param_df['total_2'] > self.min_thres]
+        part_req_df = part_req_df.sort_values(by = ['total_2']).reset_index(drop = True).loc[0:self.top_thres]
+
+        # Вычислить требуемые доли паёв
         part_req_df.loc[:,'bet_thres'] = part_req_df['total_2']-self.min_thres
         part_req_df['part'] = (0 if part_req_df['bet_thres'].sum() == 0 else part_req_df['bet_thres'] / part_req_df['bet_thres'].sum()) #part_req_df['bet_thres'] / part_req_df['bet_thres'].sum()
         part_req_df = part_req_df[['pif_id', 'part']]        

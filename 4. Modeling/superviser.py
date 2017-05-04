@@ -73,27 +73,27 @@ class Superviser:
     def action_finish(self):
 
         # Сохранение истории цен
-        writer = pd.ExcelWriter('..\\5. Evaluation\\price_hist.xlsx')
+        writer = pd.ExcelWriter('..\\5. Evaluation\\price_hist_top_thres.xlsx')
         self.agent.price_hist_df.to_excel(writer, 'Данные')
         writer.save()
 
         # Сохранение истории портфеля
-        writer = pd.ExcelWriter('..\\5. Evaluation\\port_hist.xlsx')
+        writer = pd.ExcelWriter('..\\5. Evaluation\\port_hist_top_thres.xlsx')
         self.agent.port_hist_df.to_excel(writer, 'Данные')
         writer.save()
 
         # Сохранение истории полных данных портфеля с долями
-        writer = pd.ExcelWriter('..\\5. Evaluation\\port_data_hist.xlsx')
+        writer = pd.ExcelWriter('..\\5. Evaluation\\port_data_hist_top_thres.xlsx')
         self.agent.port_data_hist_df.to_excel(writer, 'Данные')
         writer.save()
 
         # Сохранение истории параметров            
-        writer = pd.ExcelWriter('..\\5. Evaluation\\param_hist.xlsx')
+        writer = pd.ExcelWriter('..\\5. Evaluation\\param_hist_top_thres.xlsx')
         self.agent.param_hist_df.to_excel(writer, 'Данные')
         writer.save()
 
         # Сохранение истории требуемых долей портфеля
-        writer = pd.ExcelWriter('..\\5. Evaluation\\port_req_hist.xlsx')
+        writer = pd.ExcelWriter('..\\5. Evaluation\\port_req_hist_top_thres.xlsx')
         self.agent.part_req_hist_df.to_excel(writer, 'Данные')
         writer.save()
 
