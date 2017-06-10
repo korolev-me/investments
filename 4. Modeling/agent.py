@@ -30,7 +30,10 @@ class Agent:
         top_thres:        Количественный порог прибыльности ПИФа (топ рейтинга по прибыльности)
         prim_state:       Состояние первичной закупки ПИФов
         den_pow:          Знаменатель степени 1/2**index/den_pow в которую возводится волатильность 
-        work_days:        Количество рабочих дней (строк в БД) в году
+        year_days:        Количество рабочих дней (строк в БД) в периоде (году)
+        min_hist_days:    Минимальное количество рабочих дней, для которых возможно посчитать доходность за минимальный период
+        min_rent_days:    Минимальный период расчёта рентабельности для последующего перевода в годовую рентабельность
+
     """    
 
     def __init__(self, envir):
@@ -39,7 +42,7 @@ class Agent:
 
         self.start()
 
-    def start(self, top_thres = 5 , min_thres = 1, pow_st_dev = 0.5, den_pow = 248, work_days = 248):
+    def start(self, top_thres = 5 , min_thres = 1, pow_st_dev = 0.5, den_pow = 248, year_days = 248, min_hist_days = 248, min_rent_days = 248):
         """
             Установка всех переменных (которые меняются при активности) в начальное состояние
 
@@ -57,8 +60,10 @@ class Agent:
         self.pow_st_dev = pow_st_dev
         self.prim_state = True
         self.den_pow = den_pow
-        self.work_days = work_days
-    
+        self.year_days = year_days
+        self.min_hist_days = min_hist_days
+        self.min_rent_days = min_rent_days
+
     def action(self):
         """
         Запуск функционирования агента циклом смены периодов
@@ -98,18 +103,18 @@ class Agent:
             price_hist_temp_df = self.envir.price_hist_df[self.envir.price_hist_df['insrt_id'] == spr_se['insrt_id']].sort_values(by = 'date', ascending=False).reset_index(drop=True)
 
             # Если история собрана менее чем за 2 года, то не рассматривать инвестицию
-            if ((np.timedelta64(price_hist_temp_df['date'].max() - price_hist_temp_df['date'].min()).astype('timedelta64[Y]').item()) < 2) | (price_hist_temp_df.shape[0] < 496):
+            if ((np.timedelta64(price_hist_temp_df['date'].max() - price_hist_temp_df['date'].min()).astype('timedelta64[Y]').item()) < (self.min_hist_days + self.min_rent_days)/self.year_days) | (price_hist_temp_df.shape[0] < (self.min_hist_days + self.min_rent_days)):
                 continue
 
             # Замер длительности
             #time_curr = datetime.datetime.now()
 
             # Непосредственный рассчёт показателей
-            price_hist_prev_df = price_hist_temp_df[self.work_days:]
-            price_hist_prev_df.index = price_hist_temp_df.index[:-self.work_days]
+            price_hist_prev_df = price_hist_temp_df[self.year_days:]
+            price_hist_prev_df.index = price_hist_temp_df.index[:-self.year_days]
             price_hist_temp_df = pd.merge(price_hist_temp_df, price_hist_prev_df[['date', 'price']], left_index = True, right_index=True, suffixes=('', '_prev'))
-            #price_hist_temp_df['price_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['price'][x.name + self.work_days]) if x.name + self.work_days <= price_hist_temp_df.index.max() else None, axis=1)
-            #price_hist_temp_df['date_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['date'][x.name + self.work_days]) if x.name + self.work_days <= price_hist_temp_df.index.max() else None, axis=1)
+            #price_hist_temp_df['price_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['price'][x.name + self.year_days]) if x.name + self.year_days <= price_hist_temp_df.index.max() else None, axis=1)
+            #price_hist_temp_df['date_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['date'][x.name + self.year_days]) if x.name + self.year_days <= price_hist_temp_df.index.max() else None, axis=1)
 
             # Замер длительности
             #time_prev = time_curr
