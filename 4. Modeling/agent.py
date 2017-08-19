@@ -116,12 +116,14 @@ class Agent:
             #price_hist_temp_df['price_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['price'][x.name + self.year_days]) if x.name + self.year_days <= price_hist_temp_df.index.max() else None, axis=1)
             #price_hist_temp_df['date_prev'] = price_hist_temp_df.apply(lambda x: (price_hist_temp_df['date'][x.name + self.year_days]) if x.name + self.year_days <= price_hist_temp_df.index.max() else None, axis=1)
 
+
+
             # Замер длительности
             #time_prev = time_curr
             #time_curr = datetime.datetime.now()
             #print('Длительность : ', time_curr - time_prev)
 
-            price_hist_temp_df = price_hist_temp_df[price_hist_temp_df['price_prev'].notnull() & (price_hist_temp_df.index <= 1240)]
+            price_hist_temp_df = price_hist_temp_df[price_hist_temp_df['price_prev'].notnull() & (price_hist_temp_df.index <= 2*(self.min_hist_days + self.min_rent_days))] # Берётся максимальная история в 2 раза длиннее минимальной
             price_hist_temp_df['res'] = price_hist_temp_df['price']/price_hist_temp_df['price_prev']
             price_hist_temp_df['res'] = price_hist_temp_df['res'].astype(float)
             price_hist_temp_df['power'] = price_hist_temp_df.index/self.den_pow
@@ -137,6 +139,10 @@ class Agent:
 
             # Расчёт итоговых сводных показателей
             gm_w = np.exp(price_hist_temp_df['weight_res'].sum())
+
+            # Поправка на вознаграждения управляющих
+            gm_w = 1 + ((gm_w - 1) * spr_se['fee'])
+
             total_1 = gm_w / (1 + spr_se['surcharge']) * (1 - spr_se['discount'])
             st_dev_w = np.exp((price_hist_temp_df['ln_dif_2_weight'].sum())**0.5)
             total_2 = total_1 / (st_dev_w ** self.pow_st_dev)
@@ -194,6 +200,7 @@ class Agent:
         #print ('\ndate: ', self.envir.date, 'self.param_df: \n', self.param_df)
 
         # Оставить ПИФы выше порогов
+
         part_req_df = self.param_df[self.param_df['total_2'] > self.min_thres]
 
         #print ('part_req_df 1: \n', part_req_df)

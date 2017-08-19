@@ -30,7 +30,7 @@ class Environment:
 
     """
     
-    def __init__(self, date_start, cash_start, type_insrt): # Данная величина cash устанволена и при первичном закупе у agent. Менять синхорнно
+    def __init__(self, date_start, cash_start, type_insrt, file_extension): # Данная величина cash устанволена и при первичном закупе у agent. Менять синхорнно
         
         self.type_insrt = type_insrt
 
@@ -39,7 +39,7 @@ class Environment:
         
         # Загрузка полной истории цен ПИФов
         for index in self.__spr_df.index:
-            filename = self.__spr_df.loc[index]['manager'] + ' - ' + self.__spr_df.loc[index]['insrt'] + '.xlsx'
+            filename = self.__spr_df.loc[index]['manager'] + ' - ' + self.__spr_df.loc[index]['insrt'] + '.' + file_extension
             
 
 
